@@ -28,26 +28,27 @@ export default class Tokenizer {
 
     const string = this._string.slice(this._cursor);
 
-    if (!Number.isNaN(Number(string[0]))) {
-      let value = "";
+    let matched = /^\d+/.exec(string);
 
-      while (!Number.isNaN(Number(string[this._cursor]))) {
-        value += string[this._cursor++];
-      }
-
-      return { type: "NUMBER", value };
+    if (matched) {
+      this._cursor += matched[0].length;
+      return { type: "NUMBER", value: matched[0] };
     }
 
-    if (string[0] === '"') {
-      let value = "";
+    matched = /"[^"]*"/.exec(string);
 
-      do {
-        value += string[this._cursor++];
-      } while (string[this._cursor] !== '"' && !this.isEOF());
+    if (matched) {
+      this._cursor += matched[0].length;
 
-      value += this._cursor++;
+      return { type: "STRING", value: matched[0] };
+    }
 
-      return { type: "STRING", value };
+    matched = /'[^']*'/.exec(string);
+
+    if (matched) {
+      this._cursor += matched[0].length;
+
+      return { type: "STRING", value: matched[0] };
     }
 
     return null;

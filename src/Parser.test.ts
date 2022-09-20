@@ -13,8 +13,18 @@ describe("Test Parser", () => {
     });
   });
 
-  test("StringLiteral", () => {
+  test("StringLiteral with double quotes", () => {
     const program = '"Hello"';
+    const ast = parser.parse(program);
+
+    expect(ast).toEqual({
+      type: "Program",
+      body: { type: "StringLiteral", value: "Hello" },
+    });
+  });
+
+  test("StringLiteral with single quotes", () => {
+    const program = "'Hello'";
     const ast = parser.parse(program);
 
     expect(ast).toEqual({
