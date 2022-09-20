@@ -40,7 +40,39 @@ export default class Parser {
   Program() {
     return {
       type: "Program",
-      body: this.NumericLiteral(),
+      body: this.Literal(),
+    };
+  }
+
+  /**
+   * Literal
+   *  : NumericLiteral
+   *  | StringLiteral
+   *  ;
+   */
+  Literal() {
+    switch (this._lookahead?.type) {
+      case "NUMBER":
+        return this.NumericLiteral();
+
+      case "STRING":
+        return this.StringLiteral();
+    }
+
+    throw new SyntaxError("Literal: unexpected literal production.");
+  }
+
+  /**
+   * StringLiteral
+   *  : STRING
+   *  ;
+   */
+  StringLiteral(): Token {
+    const token = this._eat("STRING");
+
+    return {
+      type: "StringLiteral",
+      value: String(token.value).slice(1, -1), // strip string qutes.
     };
   }
 
@@ -49,7 +81,7 @@ export default class Parser {
    *  : NUMBER
    *  ;
    */
-  NumericLiteral() {
+  NumericLiteral(): Token {
     const token = this._eat("NUMBER");
 
     return {
@@ -58,6 +90,9 @@ export default class Parser {
     };
   }
 
+  /**
+   * Consume current token.
+   */
   private _eat(tokenType: string) {
     const token = this._lookahead;
 
