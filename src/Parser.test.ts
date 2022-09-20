@@ -133,4 +133,38 @@ describe("Test Parser", () => {
       ],
     });
   });
+
+  test("BlockStatement", () => {
+    const program = `
+    {
+      /**
+       * Documentation comment:
+       */
+      "Hello";
+
+      // Number
+      42;
+    }
+    `;
+    const ast = parser.parse(program);
+
+    expect(ast).toEqual({
+      type: "Program",
+      body: [
+        {
+          type: "BlockStatement",
+          body: [
+            {
+              type: "ExpressionStatement",
+              expression: { type: "StringLiteral", value: "Hello" },
+            },
+            {
+              type: "ExpressionStatement",
+              expression: { type: "NumericLiteral", value: 42 },
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

@@ -50,10 +50,10 @@ export default class Parser {
    *  | StatementList Statement
    *  ;
    */
-  StatementList(): Token[] {
+  StatementList(stopLookAhead: string | null = null): Token[] {
     const statementList = [this.Statement()];
 
-    while (this._lookahead) {
+    while (this._lookahead && this._lookahead.type !== stopLookAhead) {
       statementList.push(this.Statement());
     }
 
@@ -63,10 +63,37 @@ export default class Parser {
   /**
    * Statement
    *  : ExpressionStatement
+   *  | BlockStatement
    *  ;
    */
   Statement(): Token {
-    return this.ExpressionStatement();
+    switch (this._lookahead?.type) {
+      case "{":
+        return this.BlockStatement();
+
+      default:
+        return this.ExpressionStatement();
+    }
+  }
+
+  /**
+   * BlockStatement
+   *  : '{' OptStatementList '}'
+   *  ;
+   */
+  BlockStatement(): Token {
+    this._eat("{");
+
+    const body = this._lookahead?.type !== "}" ? this.StatementList("}") : [];
+
+    console.log("end of block statement", body);
+    
+    this._eat("}");
+
+    return {
+      type: "BlockStatement",
+      body,
+    };
   }
 
   /**
