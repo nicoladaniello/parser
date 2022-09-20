@@ -3,7 +3,8 @@ import { Token } from "./types";
 /**
  * Tokenizer spec.
  */
-const Spec: [RegExp, string][] = [
+const Spec: [RegExp, string | null][] = [
+  [/^\s+/, null],
   [/^\d+/, "NUMBER"],
   [/"[^"]*"/, "STRING"],
   [/'[^']*'/, "STRING"],
@@ -41,6 +42,11 @@ export default class Tokenizer {
       const value = this._match(regExp, string);
 
       if (!value) continue;
+
+      // Skip token (e.g. whitespace).
+      if (type === null) {
+        return this.getNextToken();
+      }
 
       return { type, value };
     }
