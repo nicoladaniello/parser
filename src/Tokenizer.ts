@@ -1,5 +1,14 @@
 import { Token } from "./types";
 
+/**
+ * Tokenizer spec.
+ */
+const Spec: [RegExp, string][] = [
+  [/^\d+/, "NUMBER"],
+  [/"[^"]*"/, "STRING"],
+  [/'[^']*'/, "STRING"],
+];
+
 export default class Tokenizer {
   private _string = "";
   private _cursor = 0;
@@ -28,29 +37,27 @@ export default class Tokenizer {
 
     const string = this._string.slice(this._cursor);
 
-    let matched = /^\d+/.exec(string);
+    for (const [regExp, type] of Spec) {
+      const value = this._match(regExp, string);
 
-    if (matched) {
-      this._cursor += matched[0].length;
-      return { type: "NUMBER", value: matched[0] };
+      if (!value) continue;
+
+      return { type, value };
     }
 
-    matched = /"[^"]*"/.exec(string);
+    throw new SyntaxError(`Unexpected token "${string[0]}"`);
+  }
 
-    if (matched) {
-      this._cursor += matched[0].length;
+  /**
+   * Returns the matched token and moves the cursor forward.
+   */
+  private _match(regExp: RegExp, string: string) {
+    const matched = regExp.exec(string);
 
-      return { type: "STRING", value: matched[0] };
-    }
+    if (!matched) return null;
 
-    matched = /'[^']*'/.exec(string);
+    this._cursor += matched[0].length;
 
-    if (matched) {
-      this._cursor += matched[0].length;
-
-      return { type: "STRING", value: matched[0] };
-    }
-
-    return null;
+    return matched[0];
   }
 }
