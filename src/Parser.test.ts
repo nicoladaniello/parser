@@ -222,4 +222,16 @@ describe("Test Parser", () => {
       ],
     });
   });
+
+  test("EmptyStatement", () => {
+    const program = `
+    ;
+    `;
+    const ast = parser.parse(program);
+
+    expect(ast).toEqual({
+      type: "Program",
+      body: [{ type: "EmptyStatement" }],
+    });
+  });
 });

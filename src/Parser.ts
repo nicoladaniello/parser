@@ -64,6 +64,7 @@ export default class Parser {
    * Statement
    *  : ExpressionStatement
    *  | BlockStatement
+   *  | EmptyStatement
    *  ;
    */
   Statement(): Token {
@@ -71,9 +72,23 @@ export default class Parser {
       case "{":
         return this.BlockStatement();
 
+      case ";":
+        return this.EmptyStatement();
+
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * EmptyStatement
+   *  : ';'
+   *  ;
+   */
+  EmptyStatement(): Token {
+    this._eat(";");
+
+    return { type: "EmptyStatement" };
   }
 
   /**
@@ -87,7 +102,7 @@ export default class Parser {
     const body = this._lookahead?.type !== "}" ? this.StatementList("}") : [];
 
     console.log("end of block statement", body);
-    
+
     this._eat("}");
 
     return {
