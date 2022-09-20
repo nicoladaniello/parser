@@ -167,4 +167,23 @@ describe("Test Parser", () => {
       ],
     });
   });
+
+  test("BlockStatement empty", () => {
+    const program = `
+    {
+
+    }
+    `;
+    const ast = parser.parse(program);
+
+    expect(ast).toEqual({
+      type: "Program",
+      body: [
+        {
+          type: "BlockStatement",
+          body: [],
+        },
+      ],
+    });
+  });
 });
