@@ -40,8 +40,57 @@ export default class Parser {
   Program() {
     return {
       type: "Program",
-      body: this.Literal(),
+      body: this.StatementList(),
     };
+  }
+
+  /**
+   * StatementList
+   *  : Statement
+   *  | StatementList Statement
+   *  ;
+   */
+  StatementList(): Token[] {
+    const statementList = [this.Statement()];
+
+    while (this._lookahead) {
+      statementList.push(this.Statement());
+    }
+
+    return statementList;
+  }
+
+  /**
+   * Statement
+   *  : ExpressionStatement
+   *  ;
+   */
+  Statement(): Token {
+    return this.ExpressionStatement();
+  }
+
+  /**
+   * ExpressionStatement
+   *  : Expression ';'
+   *  ;
+   */
+  ExpressionStatement(): Token {
+    const expression = this.Expression();
+    this._eat(";");
+
+    return {
+      type: "ExpressionStatement",
+      expression,
+    };
+  }
+
+  /**
+   * Expression
+   *  : Literal
+   *  ;
+   */
+  Expression(): Token {
+    return this.Literal();
   }
 
   /**
