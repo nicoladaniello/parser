@@ -4,7 +4,9 @@ import { Token } from "./types";
  * Tokenizer spec.
  */
 const Spec: [RegExp, string | null][] = [
-  [/^\s+/, null],
+  [/^\s+/, null], // skip whitespaces
+  [/^\/\/.*/, null], // skip single-line comment
+  [/^\/\*[\s\S]*?\*\//, null], // skip multi-line comment
   [/^\d+/, "NUMBER"],
   [/"[^"]*"/, "STRING"],
   [/'[^']*'/, "STRING"],
