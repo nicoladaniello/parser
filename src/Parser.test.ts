@@ -186,4 +186,40 @@ describe("Test Parser", () => {
       ],
     });
   });
+
+  test("BlockStatement nested block", () => {
+    const program = `
+    {
+      42;
+      {
+        "Hello";
+      }
+    }
+    `;
+    const ast = parser.parse(program);
+
+    expect(ast).toEqual({
+      type: "Program",
+      body: [
+        {
+          type: "BlockStatement",
+          body: [
+            {
+              type: "ExpressionStatement",
+              expression: { type: "NumericLiteral", value: 42 },
+            },
+            {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "ExpressionStatement",
+                  expression: { type: "StringLiteral", value: "Hello" },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  });
 });
