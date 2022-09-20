@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "name": "parser",
+  "version": "1.0.0",
+  "description": "Build a Recursive-descent parser.",
+  "author": "Nicola D'Aniello",
+  "license": "ISC",
+  "browserslist": "> 0.25%, not dead",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.19.1",
+    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
+    "@babel/preset-env": "^7.19.1",
+    "@babel/preset-typescript": "^7.18.6",
+    "@types/jest": "^29.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.37.0",
+    "@typescript-eslint/parser": "^5.37.0",
+    "babel-jest": "^29.0.3",
+    "eslint": "^8.23.1",
+    "jest": "^29.0.3",
+    "ts-jest": "^29.0.1",
+    "typescript": "^4.8.3"
+  }
+}
