@@ -15,6 +15,8 @@ const Spec: [RegExp, string | null][] = [
   [/^;/, ";"],
   [/^\{/, "{"],
   [/^\}/, "}"],
+  [/^\(/, "("],
+  [/^\)/, ")"],
 
   // Math operators
   [/^[+-]/, "ADDITIVE_OPERATOR"],

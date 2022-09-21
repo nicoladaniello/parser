@@ -184,11 +184,30 @@ export default class Parser {
 
   /**
    * PrimaryExpression
-   *  : Literal
+   *  : ParenthesizedExpression
+   *  | Literal
    *  ;
    */
   PrimaryExpression() {
-    return this.Literal();
+    switch (this._lookahead?.type) {
+      case "(":
+        return this.ParenthesizedExpression();
+
+      default:
+        return this.Literal();
+    }
+  }
+
+  /**
+   * ParenthesizedExpression
+   *  : '(' Expression ')'
+   */
+  ParenthesizedExpression(): Token {
+    this._eat("(");
+    const expression = this.Expression();
+    this._eat(")");
+
+    return expression;
   }
 
   /**
