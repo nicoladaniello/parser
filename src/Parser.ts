@@ -127,11 +127,67 @@ export default class Parser {
   /**
    * Expression
    *  : Literal
-   *  | AdditiveExpression
    *  ;
    */
   Expression(): Token {
-    return this.AdditiveExpression();
+    return this.AssignmentExpression();
+  }
+
+  /**
+   * AssignmentExpression
+   *  : AdditiveExpression
+   *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+   */
+  AssignmentExpression(): Token {
+    const left = this.AdditiveExpression();
+
+    if (!this._isAssignmentOperator(this._lookahead?.type)) {
+      return left;
+    }
+
+    return {
+      type: "AssignmentExpression",
+      operator: this.AssignmentOperator().value?.toString(),
+      left: this._checkValidAssignmentTarget(left),
+      right: this.AssignmentExpression(),
+    };
+  }
+
+  /**
+   * LeftHandSideExpression
+   *  : Identifier
+   *  ;
+   */
+  LeftHandSideExpression() {
+    return this.Identifier();
+  }
+
+  /**
+   * Identifier
+   *  : INDENTIFIER
+   *  ;
+   */
+  Identifier() {
+    const name = this._eat("IDENTIFIER").value;
+
+    return {
+      type: "Identifier",
+      name,
+    };
+  }
+
+  /**
+   * AssignmentOperator
+   *  : SIMPLE_ASSIGN
+   *  | COMPLEX_ASSIGN
+   *  ;
+   */
+  AssignmentOperator() {
+    if (this._lookahead?.type === "SIMPLE_ASSIGN") {
+      return this._eat("SIMPLE_ASSIGN");
+    } else {
+      return this._eat("COMPLEX_ASSIGN");
+    }
   }
 
   /**
@@ -160,37 +216,24 @@ export default class Parser {
     );
   }
 
-  private _BinaryExpression(builder: () => Token, operatorType: string) {
-    let left = builder();
-
-    while (this._lookahead?.type === operatorType) {
-      const operator = this._eat(operatorType).value?.toString();
-      const right = builder();
-
-      left = {
-        type: "BinaryExpression",
-        operator,
-        left,
-        right,
-      };
-    }
-
-    return left;
-  }
-
   /**
    * PrimaryExpression
-   *  : ParenthesizedExpression
-   *  | Literal
+   *  : Literal
+   *  | ParenthesizedExpression
+   *  | LeftHandSideExpression
    *  ;
    */
   PrimaryExpression() {
+    if (this._isLiteral(this._lookahead?.type)) {
+      return this.Literal();
+    }
+
     switch (this._lookahead?.type) {
       case "(":
         return this.ParenthesizedExpression();
 
       default:
-        return this.Literal();
+        return this.LeftHandSideExpression();
     }
   }
 
@@ -250,6 +293,52 @@ export default class Parser {
       type: "NumericLiteral",
       value: Number(token.value),
     };
+  }
+
+  /**
+   * Validate assignment target.
+   */
+  private _checkValidAssignmentTarget(node: Token) {
+    if (node.type === "Identifier") {
+      return node;
+    }
+
+    throw new SyntaxError(`Invalid left-hand sign in assignment expression.`);
+  }
+
+  /**
+   * Whether the token is a literal.
+   */
+  private _isLiteral(tokenType?: string) {
+    return tokenType === "NUMBER" || tokenType === "STRING";
+  }
+
+  /**
+   * Whether the token is an assignment operator (e.g. =, +=, *= etc.).
+   */
+  private _isAssignmentOperator(type?: string) {
+    return type === "SIMPLE_ASSIGN" || type === "COMPLEX_ASSIGN";
+  }
+
+  /**
+   * BinaryExpression helper
+   */
+  private _BinaryExpression(builder: () => Token, operatorType: string) {
+    let left = builder();
+
+    while (this._lookahead?.type === operatorType) {
+      const operator = this._eat(operatorType).value?.toString();
+      const right = builder();
+
+      left = {
+        type: "BinaryExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    return left;
   }
 
   /**
