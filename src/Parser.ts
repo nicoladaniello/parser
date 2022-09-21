@@ -136,16 +136,16 @@ export default class Parser {
 
   /**
    * AdditiveExpression
-   *  : Literal
-   *  | AdditiveExpression ADDITIVE_OPERATOR Literal
+   *  : MultiplicativeExpression
+   *  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression
    *  ;
    */
   AdditiveExpression() {
-    let left = this.Literal();
+    let left = this.MultiplicativeExpression();
 
     while (this._lookahead?.type === "ADDITIVE_OPERATOR") {
       const operator = this._eat("ADDITIVE_OPERATOR").value?.toString();
-      const right = this.Literal();
+      const right = this.MultiplicativeExpression();
 
       left = {
         type: "BinaryExpression",
@@ -156,6 +156,39 @@ export default class Parser {
     }
 
     return left;
+  }
+
+  /**
+   * MultiplicativeExpression
+   *  : PrimaryExpression
+   *  | AdditiveExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+   *  ;
+   */
+  MultiplicativeExpression() {
+    let left = this.PrimaryExpression();
+
+    while (this._lookahead?.type === "MULTIPLICATIVE_OPERATOR") {
+      const operator = this._eat("MULTIPLICATIVE_OPERATOR").value?.toString();
+      const right = this.PrimaryExpression();
+
+      left = {
+        type: "BinaryExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    return left;
+  }
+
+  /**
+   * PrimaryExpression
+   *  : Literal
+   *  ;
+   */
+  PrimaryExpression() {
+    return this.Literal();
   }
 
   /**
