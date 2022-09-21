@@ -101,8 +101,6 @@ export default class Parser {
 
     const body = this._lookahead?.type !== "}" ? this.StatementList("}") : [];
 
-    console.log("end of block statement", body);
-
     this._eat("}");
 
     return {
@@ -129,10 +127,35 @@ export default class Parser {
   /**
    * Expression
    *  : Literal
+   *  | AdditiveExpression
    *  ;
    */
   Expression(): Token {
-    return this.Literal();
+    return this.AdditiveExpression();
+  }
+
+  /**
+   * AdditiveExpression
+   *  : Literal
+   *  | AdditiveExpression ADDITIVE_OPERATOR Literal
+   *  ;
+   */
+  AdditiveExpression() {
+    let left = this.Literal();
+
+    while (this._lookahead?.type === "ADDITIVE_OPERATOR") {
+      const operator = this._eat("ADDITIVE_OPERATOR").value?.toString();
+      const right = this.Literal();
+
+      left = {
+        type: "BinaryExpression",
+        operator,
+        left,
+        right,
+      };
+    }
+
+    return left;
   }
 
   /**

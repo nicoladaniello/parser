@@ -4,7 +4,10 @@ import { Token } from "./types";
  * Tokenizer spec.
  */
 const Spec: [RegExp, string | null][] = [
+  // Whitespace
   [/^\s+/, null], // skip whitespaces
+
+  // Comments.
   [/^\/\/.*/, null], // skip single-line comment
   [/^\/\*[\s\S]*?\*\//, null], // skip multi-line comment
 
@@ -12,6 +15,9 @@ const Spec: [RegExp, string | null][] = [
   [/^;/, ";"],
   [/^\{/, "{"],
   [/^\}/, "}"],
+
+  // Math operators
+  [/^[+-]/, "ADDITIVE_OPERATOR"],
 
   // Numbers.
   [/^\d+/, "NUMBER"],
