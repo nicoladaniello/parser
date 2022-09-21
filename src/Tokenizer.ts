@@ -17,6 +17,10 @@ const Spec: [RegExp, string | null][] = [
   [/^\}/, "}"],
   [/^\(/, "("],
   [/^\)/, ")"],
+  [/^,/, ","],
+
+  // Keywords
+  [/^\blet\b/, "let"],
 
   // Numbers.
   [/^\d+/, "NUMBER"],
