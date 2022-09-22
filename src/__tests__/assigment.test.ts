@@ -1,9 +1,9 @@
-import Parser from "./Parser";
+import Parser from "../Parser";
 
-describe("Assignment operator", () => {
+describe("Parser", () => {
   const parser = new Parser();
 
-  test("x = 42;", () => {
+  test("should support simple assignments", () => {
     const ast = parser.parse(`
       x = 42;
     `);
@@ -31,7 +31,7 @@ describe("Assignment operator", () => {
   });
 
   // Chained assignment
-  test("x = y = 42;", () => {
+  test("should support chained assignments", () => {
     const ast = parser.parse(`
       x = y = 42;
     `);
@@ -66,35 +66,8 @@ describe("Assignment operator", () => {
     });
   });
 
-  test("x + y;", () => {
-    const ast = parser.parse(`
-      x + y;
-    `);
-
-    expect(ast).toEqual({
-      type: "Program",
-      body: [
-        {
-          type: "ExpressionStatement",
-          expression: {
-            type: "BinaryExpression",
-            operator: "+",
-            left: {
-              type: "Identifier",
-              name: "x",
-            },
-            right: {
-              type: "Identifier",
-              name: "y",
-            },
-          },
-        },
-      ],
-    });
-  });
-
   // Complex assignment
-  test("x += 1;", () => {
+  test("should support complex assignments", () => {
     const ast = parser.parse(`x += 1;`);
 
     expect(ast).toEqual({
@@ -120,7 +93,7 @@ describe("Assignment operator", () => {
   });
 
   // Chained assignment
-  test("42 = 42;", () => {
+  test("should throw if identifier is a number", () => {
     expect(() => parser.parse(`42 = 42;`)).toThrowError();
   });
 });

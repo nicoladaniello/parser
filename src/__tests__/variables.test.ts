@@ -1,4 +1,4 @@
-import Parser from "./Parser";
+import Parser from "../Parser";
 
 describe("Variables", () => {
   const parser = new Parser();
