@@ -1,4 +1,7 @@
-import { Token } from "./types";
+export type Token = {
+  type: string;
+  value?: string | number;
+};
 
 /**
  * Tokenizer spec.

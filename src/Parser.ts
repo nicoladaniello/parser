@@ -1,5 +1,18 @@
-import Tokenizer from "./Tokenizer";
-import { Token } from "./types";
+import Tokenizer, { Token } from "./Tokenizer";
+import {
+  BlockStatement,
+  EmptyStatement,
+  ExpressionStatement,
+  Identifier,
+  Literal,
+  NumericLiteral,
+  PrimaryExpression,
+  Program,
+  Statement,
+  StringLiteral,
+  VariableDeclaration,
+  VariableStatement,
+} from "./types";
 
 /**
  * Recursive-descent parser implementation.
@@ -37,7 +50,7 @@ export default class Parser {
    *  : NumericLiteral
    *  ;
    */
-  Program() {
+  Program(): Program {
     return {
       type: "Program",
       body: this.StatementList(),
@@ -50,7 +63,7 @@ export default class Parser {
    *  | StatementList Statement
    *  ;
    */
-  StatementList(stopLookAhead: string | null = null): Token[] {
+  StatementList(stopLookAhead: string | null = null): Statement[] {
     const statementList = [this.Statement()];
 
     while (this._lookahead && this._lookahead.type !== stopLookAhead) {
@@ -68,7 +81,7 @@ export default class Parser {
    *  | VariableStatement
    *  ;
    */
-  Statement(): Token {
+  Statement(): Statement {
     switch (this._lookahead?.type) {
       case "{":
         return this.BlockStatement();
@@ -89,7 +102,7 @@ export default class Parser {
    *  : 'let' VariableDeclarationList ';'
    *  ;
    */
-  VariableStatement() {
+  VariableStatement(): VariableStatement {
     this._eat("let");
     const declarations = this.VariableDeclarationList();
     this._eat(";");
@@ -106,7 +119,7 @@ export default class Parser {
    *  | VariableDeclarationList ',' VariableDeclaration
    *  ;
    */
-  VariableDeclarationList() {
+  VariableDeclarationList(): VariableDeclaration[] {
     const declarations = [];
 
     do {
@@ -121,7 +134,7 @@ export default class Parser {
    *  : Identifier OptVariableInitializer
    *  ;
    */
-  VariableDeclaration() {
+  VariableDeclaration(): VariableDeclaration {
     const id = this.Identifier();
 
     const init =
@@ -152,7 +165,7 @@ export default class Parser {
    *  : ';'
    *  ;
    */
-  EmptyStatement(): Token {
+  EmptyStatement(): EmptyStatement {
     this._eat(";");
 
     return { type: "EmptyStatement" };
@@ -163,7 +176,7 @@ export default class Parser {
    *  : '{' OptStatementList '}'
    *  ;
    */
-  BlockStatement(): Token {
+  BlockStatement(): BlockStatement {
     this._eat("{");
 
     const body = this._lookahead?.type !== "}" ? this.StatementList("}") : [];
@@ -181,7 +194,7 @@ export default class Parser {
    *  : Expression ';'
    *  ;
    */
-  ExpressionStatement(): Token {
+  ExpressionStatement(): ExpressionStatement {
     const expression = this.Expression();
     this._eat(";");
 
@@ -196,7 +209,7 @@ export default class Parser {
    *  : Literal
    *  ;
    */
-  Expression(): Token {
+  Expression() {
     return this.AssignmentExpression();
   }
 
@@ -205,7 +218,7 @@ export default class Parser {
    *  : AdditiveExpression
    *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
    */
-  AssignmentExpression(): Token {
+  AssignmentExpression(): PrimaryExpression {
     const left = this.AdditiveExpression();
 
     if (!this._isAssignmentOperator(this._lookahead?.type)) {
@@ -214,7 +227,8 @@ export default class Parser {
 
     return {
       type: "AssignmentExpression",
-      operator: this.AssignmentOperator().value?.toString(),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      operator: this.AssignmentOperator().value!.toString(),
       left: this._checkValidAssignmentTarget(left),
       right: this.AssignmentExpression(),
     };
@@ -234,8 +248,9 @@ export default class Parser {
    *  : INDENTIFIER
    *  ;
    */
-  Identifier() {
-    const name = this._eat("IDENTIFIER").value;
+  Identifier(): Identifier {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const name = this._eat("IDENTIFIER").value!.toString();
 
     return {
       type: "Identifier",
@@ -263,7 +278,7 @@ export default class Parser {
    *  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression
    *  ;
    */
-  AdditiveExpression() {
+  AdditiveExpression(): PrimaryExpression {
     return this._BinaryExpression(
       this.MultiplicativeExpression.bind(this),
       "ADDITIVE_OPERATOR"
@@ -276,7 +291,7 @@ export default class Parser {
    *  | AdditiveExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
    *  ;
    */
-  MultiplicativeExpression() {
+  MultiplicativeExpression(): PrimaryExpression {
     return this._BinaryExpression(
       this.PrimaryExpression.bind(this),
       "MULTIPLICATIVE_OPERATOR"
@@ -290,7 +305,7 @@ export default class Parser {
    *  | LeftHandSideExpression
    *  ;
    */
-  PrimaryExpression() {
+  PrimaryExpression(): PrimaryExpression {
     if (this._isLiteral(this._lookahead?.type)) {
       return this.Literal();
     }
@@ -308,7 +323,7 @@ export default class Parser {
    * ParenthesizedExpression
    *  : '(' Expression ')'
    */
-  ParenthesizedExpression(): Token {
+  ParenthesizedExpression() {
     this._eat("(");
     const expression = this.Expression();
     this._eat(")");
@@ -322,7 +337,7 @@ export default class Parser {
    *  | StringLiteral
    *  ;
    */
-  Literal() {
+  Literal(): Literal {
     switch (this._lookahead?.type) {
       case "NUMBER":
         return this.NumericLiteral();
@@ -339,7 +354,7 @@ export default class Parser {
    *  : STRING
    *  ;
    */
-  StringLiteral(): Token {
+  StringLiteral(): StringLiteral {
     const token = this._eat("STRING");
 
     return {
@@ -353,7 +368,7 @@ export default class Parser {
    *  : NUMBER
    *  ;
    */
-  NumericLiteral(): Token {
+  NumericLiteral(): NumericLiteral {
     const token = this._eat("NUMBER");
 
     return {
@@ -365,7 +380,7 @@ export default class Parser {
   /**
    * Validate assignment target.
    */
-  private _checkValidAssignmentTarget(node: Token) {
+  private _checkValidAssignmentTarget(node: any) {
     if (node.type === "Identifier") {
       return node;
     }
@@ -390,11 +405,15 @@ export default class Parser {
   /**
    * BinaryExpression helper
    */
-  private _BinaryExpression(builder: () => Token, operatorType: string) {
+  private _BinaryExpression(
+    builder: () => PrimaryExpression,
+    operatorType: string
+  ) {
     let left = builder();
 
     while (this._lookahead?.type === operatorType) {
-      const operator = this._eat(operatorType).value?.toString();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const operator = this._eat(operatorType).value!.toString();
       const right = builder();
 
       left = {
@@ -411,7 +430,7 @@ export default class Parser {
   /**
    * Consume current token.
    */
-  private _eat(tokenType: string) {
+  private _eat(tokenType: string): Token {
     const token = this._lookahead;
 
     if (token == null) {
