@@ -1,3 +1,4 @@
+import Factory from "./Factory";
 import Tokenizer, { Token } from "./Tokenizer";
 import {
   BlockStatement,
@@ -51,10 +52,7 @@ export default class Parser {
    *  ;
    */
   Program(): Program {
-    return {
-      type: "Program",
-      body: this.StatementList(),
-    };
+    return Factory.Program(this.StatementList());
   }
 
   /**
@@ -107,10 +105,7 @@ export default class Parser {
     const declarations = this.VariableDeclarationList();
     this._eat(";");
 
-    return {
-      type: "VariableStatement",
-      declarations,
-    };
+    return Factory.VariableStatement(declarations);
   }
 
   /**
@@ -142,11 +137,7 @@ export default class Parser {
         ? this.VariableInitializer()
         : null;
 
-    return {
-      type: "VariableDeclaration",
-      id,
-      init,
-    };
+    return Factory.VariableDeclaration(id, init);
   }
 
   /**
@@ -168,7 +159,7 @@ export default class Parser {
   EmptyStatement(): EmptyStatement {
     this._eat(";");
 
-    return { type: "EmptyStatement" };
+    return Factory.EmptyStatement();
   }
 
   /**
@@ -183,10 +174,7 @@ export default class Parser {
 
     this._eat("}");
 
-    return {
-      type: "BlockStatement",
-      body,
-    };
+    return Factory.BlockStatement(body);
   }
 
   /**
@@ -198,10 +186,7 @@ export default class Parser {
     const expression = this.Expression();
     this._eat(";");
 
-    return {
-      type: "ExpressionStatement",
-      expression,
-    };
+    return Factory.ExpressionStatement(expression);
   }
 
   /**
@@ -225,13 +210,12 @@ export default class Parser {
       return left;
     }
 
-    return {
-      type: "AssignmentExpression",
+    return Factory.AssignmentExpression(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      operator: this.AssignmentOperator().value!.toString(),
-      left: this._checkValidAssignmentTarget(left),
-      right: this.AssignmentExpression(),
-    };
+      this.AssignmentOperator().value!.toString(),
+      this._checkValidAssignmentTarget(left),
+      this.AssignmentExpression()
+    );
   }
 
   /**
@@ -252,10 +236,7 @@ export default class Parser {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const name = this._eat("IDENTIFIER").value!.toString();
 
-    return {
-      type: "Identifier",
-      name,
-    };
+    return Factory.Identifier(name);
   }
 
   /**
@@ -357,10 +338,7 @@ export default class Parser {
   StringLiteral(): StringLiteral {
     const token = this._eat("STRING");
 
-    return {
-      type: "StringLiteral",
-      value: String(token.value).slice(1, -1), // strip string qutes.
-    };
+    return Factory.StringLiteral(String(token.value).slice(1, -1));
   }
 
   /**
@@ -371,15 +349,13 @@ export default class Parser {
   NumericLiteral(): NumericLiteral {
     const token = this._eat("NUMBER");
 
-    return {
-      type: "NumericLiteral",
-      value: Number(token.value),
-    };
+    return Factory.NumericLiteral(Number(token.value));
   }
 
   /**
    * Validate assignment target.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _checkValidAssignmentTarget(node: any) {
     if (node.type === "Identifier") {
       return node;
@@ -416,12 +392,7 @@ export default class Parser {
       const operator = this._eat(operatorType).value!.toString();
       const right = builder();
 
-      left = {
-        type: "BinaryExpression",
-        operator,
-        left,
-        right,
-      };
+      left = Factory.BinaryExpression(operator, left, right);
     }
 
     return left;
