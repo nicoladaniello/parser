@@ -212,11 +212,11 @@ export default class Parser {
 
   /**
    * AssignmentExpression
-   *  : RelationalExpression
-   *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+   *  : EqualityExpression
+   *  | LeftHandSideExpression ASSIGNMENT_OPERATOR AssignmentExpression
    */
   AssignmentExpression(): AST {
-    const left = this.RelationalExpression();
+    const left = this.EqualityExpression();
 
     if (!this._isAssignmentOperator(this._lookahead?.type)) {
       return left;
@@ -227,6 +227,19 @@ export default class Parser {
       this.AssignmentOperator().value!.toString(),
       this._checkValidAssignmentTarget(left),
       this.AssignmentExpression()
+    );
+  }
+
+  /**
+   * EqualityExpression
+   *  : RelationalExpression
+   *  | RelationalExpression EQUALITY_OPERATOR EqualityExpression
+   *  ;
+   */
+  EqualityExpression() {
+    return this._BinaryExpression(
+      this.RelationalExpression.bind(this),
+      "EQUALITY_OPERATOR"
     );
   }
 
@@ -341,6 +354,8 @@ export default class Parser {
    * Literal
    *  : NumericLiteral
    *  | StringLiteral
+   *  | BooleanLiteral
+   *  | NullLiteral
    *  ;
    */
   Literal() {
@@ -350,6 +365,15 @@ export default class Parser {
 
       case "STRING":
         return this.StringLiteral();
+
+      case "true":
+        return this.BooleanLiteral(true);
+
+      case "false":
+        return this.BooleanLiteral(false);
+
+      case "null":
+        return this.NullLiteral();
     }
 
     throw new SyntaxError("Literal: unexpected literal production.");
@@ -362,7 +386,6 @@ export default class Parser {
    */
   StringLiteral() {
     const token = this._eat("STRING");
-
     return Factory.StringLiteral(String(token.value).slice(1, -1));
   }
 
@@ -373,8 +396,27 @@ export default class Parser {
    */
   NumericLiteral() {
     const token = this._eat("NUMBER");
-
     return Factory.NumericLiteral(Number(token.value));
+  }
+
+  /**
+   * BooleanLiteral
+   *  : true
+   *  | false
+   *  ;
+   */
+  BooleanLiteral(value: boolean) {
+    this._eat(String(value));
+    return Factory.BooleanLiteral(value);
+  }
+
+  /**
+   * BooleanLiteral
+   *  : null
+   *  ;
+   */
+  NullLiteral() {
+    return Factory.NullLiteral();
   }
 
   /**
@@ -393,7 +435,13 @@ export default class Parser {
    * Whether the token is a literal.
    */
   private _isLiteral(tokenType?: string) {
-    return tokenType === "NUMBER" || tokenType === "STRING";
+    return (
+      tokenType === "NUMBER" ||
+      tokenType === "STRING" ||
+      tokenType === "true" ||
+      tokenType === "false" ||
+      tokenType === "null"
+    );
   }
 
   /**

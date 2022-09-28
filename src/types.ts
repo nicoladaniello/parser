@@ -1,1 +1,7 @@
-export type AST = null | string | number | AST[] | { [key: string]: AST };
+export type AST =
+  | null
+  | string
+  | number
+  | boolean
+  | AST[]
+  | { [key: string]: AST };

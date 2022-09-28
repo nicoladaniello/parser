@@ -13,6 +13,18 @@ export default {
       value,
     };
   },
+  BooleanLiteral(value: boolean): AST {
+    return {
+      type: "BooleanLiteral",
+      value,
+    };
+  },
+  NullLiteral(): AST {
+    return {
+      type: "NullLiteral",
+      value: null,
+    };
+  },
   AssignmentExpression(operator: string, left: AST, right: AST): AST {
     return {
       type: "AssignmentExpression",
