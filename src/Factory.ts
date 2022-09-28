@@ -33,6 +33,13 @@ export default {
       right,
     };
   },
+  UnaryExpression(operator: string, argument: AST) {
+    return {
+      type: "UnaryExpression",
+      operator,
+      argument,
+    };
+  },
   BinaryExpression(operator: string, left: AST, right: AST): AST {
     return {
       type: "BinaryExpression",

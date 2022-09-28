@@ -281,15 +281,6 @@ export default class Parser {
   }
 
   /**
-   * LeftHandSideExpression
-   *  : Identifier
-   *  ;
-   */
-  LeftHandSideExpression() {
-    return this.Identifier();
-  }
-
-  /**
    * Identifier
    *  : INDENTIFIER
    *  ;
@@ -330,22 +321,58 @@ export default class Parser {
 
   /**
    * MultiplicativeExpression
-   *  : PrimaryExpression
-   *  | AdditiveExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
+   *  : UnaryExpression
+   *  | AdditiveExpression MULTIPLICATIVE_OPERATOR UnaryExpression
    *  ;
    */
   MultiplicativeExpression() {
     return this._BinaryExpression(
-      this.PrimaryExpression.bind(this),
+      this.UnaryExpression.bind(this),
       "MULTIPLICATIVE_OPERATOR"
     );
+  }
+
+  /**
+   * UnaryExpression
+   *  : LeftHandSideExpression
+   *  | ADDITIVE_OPERATOR UnaryExpression
+   *  | LOGICAL_NOT UnaryExpression
+   *  ;
+   */
+  UnaryExpression(): AST {
+    let operator: string | null = null;
+
+    switch (this._lookahead?.type) {
+      case "ADDITIVE_OPERATOR":
+        operator = this._eat("ADDITIVE_OPERATOR").value as string;
+        break;
+
+      case "LOGICAL_NOT":
+        operator = this._eat("LOGICAL_NOT").value as string;
+        break;
+    }
+
+    if (operator !== null) {
+      return Factory.UnaryExpression(operator, this.UnaryExpression());
+    }
+
+    return this.LeftHandSideExpression();
+  }
+
+  /**
+   * LeftHandSideExpression
+   *  : PrimaryExpression
+   *  ;
+   */
+  LeftHandSideExpression() {
+    return this.PrimaryExpression();
   }
 
   /**
    * PrimaryExpression
    *  : Literal
    *  | ParenthesizedExpression
-   *  | LeftHandSideExpression
+   *  | Identifier
    *  ;
    */
   PrimaryExpression(): AST {
@@ -358,7 +385,7 @@ export default class Parser {
         return this.ParenthesizedExpression();
 
       default:
-        return this.LeftHandSideExpression();
+        return this.Identifier();
     }
   }
 
