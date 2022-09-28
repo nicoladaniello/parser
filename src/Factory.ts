@@ -129,4 +129,18 @@ export default {
       body,
     };
   },
+  FunctionDeclaration(name: AST, params: AST, body: AST): AST {
+    return {
+      type: "FunctionDeclaration",
+      name,
+      params,
+      body,
+    };
+  },
+  ReturnStatement(argument: AST): AST {
+    return {
+      type: "ReturnStatement",
+      argument,
+    };
+  },
 };

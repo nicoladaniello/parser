@@ -32,6 +32,8 @@ const Spec: [RegExp, string | null][] = [
   [/^\bwhile\b/, "while"],
   [/^\bdo\b/, "do"],
   [/^\bfor\b/, "for"],
+  [/^\bdef\b/, "def"],
+  [/^\breturn\b/, "return"],
 
   // Numbers.
   [/^\d+/, "NUMBER"],
