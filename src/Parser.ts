@@ -212,11 +212,11 @@ export default class Parser {
 
   /**
    * AssignmentExpression
-   *  : AdditiveExpression
+   *  : RelationalExpression
    *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
    */
   AssignmentExpression(): AST {
-    const left = this.AdditiveExpression();
+    const left = this.RelationalExpression();
 
     if (!this._isAssignmentOperator(this._lookahead?.type)) {
       return left;
@@ -227,6 +227,19 @@ export default class Parser {
       this.AssignmentOperator().value!.toString(),
       this._checkValidAssignmentTarget(left),
       this.AssignmentExpression()
+    );
+  }
+
+  /**
+   * RelationalExpression
+   *  : AdditiveExpression
+   *  | AdditiveExpression RELATIONAL_OPERATOR AdditiveExpression
+   *  ;
+   */
+  RelationalExpression() {
+    return this._BinaryExpression(
+      this.AdditiveExpression.bind(this),
+      "RELATIONAL_OPERATOR"
     );
   }
 
