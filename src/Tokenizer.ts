@@ -24,6 +24,8 @@ const Spec: [RegExp, string | null][] = [
 
   // Keywords
   [/^\blet\b/, "let"],
+  [/^\bif\b/, "if"],
+  [/^\belse\b/, "else"],
 
   // Numbers.
   [/^\d+/, "NUMBER"],

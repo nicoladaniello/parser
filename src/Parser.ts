@@ -1,19 +1,6 @@
 import Factory from "./Factory";
 import Tokenizer, { Token } from "./Tokenizer";
-import {
-  BlockStatement,
-  EmptyStatement,
-  ExpressionStatement,
-  Identifier,
-  Literal,
-  NumericLiteral,
-  PrimaryExpression,
-  Program,
-  Statement,
-  StringLiteral,
-  VariableDeclaration,
-  VariableStatement,
-} from "./types";
+import { AST } from "./types";
 
 /**
  * Recursive-descent parser implementation.
@@ -51,7 +38,7 @@ export default class Parser {
    *  : NumericLiteral
    *  ;
    */
-  Program(): Program {
+  Program() {
     return Factory.Program(this.StatementList());
   }
 
@@ -61,7 +48,7 @@ export default class Parser {
    *  | StatementList Statement
    *  ;
    */
-  StatementList(stopLookAhead: string | null = null): Statement[] {
+  StatementList(stopLookAhead: string | null = null): AST {
     const statementList = [this.Statement()];
 
     while (this._lookahead && this._lookahead.type !== stopLookAhead) {
@@ -79,7 +66,7 @@ export default class Parser {
    *  | VariableStatement
    *  ;
    */
-  Statement(): Statement {
+  Statement(): AST {
     switch (this._lookahead?.type) {
       case "{":
         return this.BlockStatement();
@@ -90,9 +77,34 @@ export default class Parser {
       case "let":
         return this.VariableStatement();
 
+      case "if": {
+        return this.IfStatement();
+      }
+
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * IfStatement
+   *  : 'if' '(' Expression ')' Statement
+   *  | 'if' '(' Expression ')' Statement 'else' Statement
+   *  ;
+   */
+  IfStatement() {
+    this._eat("if");
+    this._eat("(");
+    const test = this.Expression();
+    this._eat(")");
+    const consequent = this.Statement();
+
+    const alternate =
+      this._lookahead?.type === "else"
+        ? this._eat("else") && this.Statement()
+        : null;
+
+    return Factory.IfStatement(test, consequent, alternate);
   }
 
   /**
@@ -100,7 +112,7 @@ export default class Parser {
    *  : 'let' VariableDeclarationList ';'
    *  ;
    */
-  VariableStatement(): VariableStatement {
+  VariableStatement() {
     this._eat("let");
     const declarations = this.VariableDeclarationList();
     this._eat(";");
@@ -114,7 +126,7 @@ export default class Parser {
    *  | VariableDeclarationList ',' VariableDeclaration
    *  ;
    */
-  VariableDeclarationList(): VariableDeclaration[] {
+  VariableDeclarationList() {
     const declarations = [];
 
     do {
@@ -129,7 +141,7 @@ export default class Parser {
    *  : Identifier OptVariableInitializer
    *  ;
    */
-  VariableDeclaration(): VariableDeclaration {
+  VariableDeclaration() {
     const id = this.Identifier();
 
     const init =
@@ -156,7 +168,7 @@ export default class Parser {
    *  : ';'
    *  ;
    */
-  EmptyStatement(): EmptyStatement {
+  EmptyStatement() {
     this._eat(";");
 
     return Factory.EmptyStatement();
@@ -167,7 +179,7 @@ export default class Parser {
    *  : '{' OptStatementList '}'
    *  ;
    */
-  BlockStatement(): BlockStatement {
+  BlockStatement() {
     this._eat("{");
 
     const body = this._lookahead?.type !== "}" ? this.StatementList("}") : [];
@@ -182,7 +194,7 @@ export default class Parser {
    *  : Expression ';'
    *  ;
    */
-  ExpressionStatement(): ExpressionStatement {
+  ExpressionStatement() {
     const expression = this.Expression();
     this._eat(";");
 
@@ -203,7 +215,7 @@ export default class Parser {
    *  : AdditiveExpression
    *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
    */
-  AssignmentExpression(): PrimaryExpression {
+  AssignmentExpression(): AST {
     const left = this.AdditiveExpression();
 
     if (!this._isAssignmentOperator(this._lookahead?.type)) {
@@ -232,7 +244,7 @@ export default class Parser {
    *  : INDENTIFIER
    *  ;
    */
-  Identifier(): Identifier {
+  Identifier() {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const name = this._eat("IDENTIFIER").value!.toString();
 
@@ -259,7 +271,7 @@ export default class Parser {
    *  | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression
    *  ;
    */
-  AdditiveExpression(): PrimaryExpression {
+  AdditiveExpression() {
     return this._BinaryExpression(
       this.MultiplicativeExpression.bind(this),
       "ADDITIVE_OPERATOR"
@@ -272,7 +284,7 @@ export default class Parser {
    *  | AdditiveExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
    *  ;
    */
-  MultiplicativeExpression(): PrimaryExpression {
+  MultiplicativeExpression() {
     return this._BinaryExpression(
       this.PrimaryExpression.bind(this),
       "MULTIPLICATIVE_OPERATOR"
@@ -286,7 +298,7 @@ export default class Parser {
    *  | LeftHandSideExpression
    *  ;
    */
-  PrimaryExpression(): PrimaryExpression {
+  PrimaryExpression(): AST {
     if (this._isLiteral(this._lookahead?.type)) {
       return this.Literal();
     }
@@ -318,7 +330,7 @@ export default class Parser {
    *  | StringLiteral
    *  ;
    */
-  Literal(): Literal {
+  Literal() {
     switch (this._lookahead?.type) {
       case "NUMBER":
         return this.NumericLiteral();
@@ -335,7 +347,7 @@ export default class Parser {
    *  : STRING
    *  ;
    */
-  StringLiteral(): StringLiteral {
+  StringLiteral() {
     const token = this._eat("STRING");
 
     return Factory.StringLiteral(String(token.value).slice(1, -1));
@@ -346,7 +358,7 @@ export default class Parser {
    *  : NUMBER
    *  ;
    */
-  NumericLiteral(): NumericLiteral {
+  NumericLiteral() {
     const token = this._eat("NUMBER");
 
     return Factory.NumericLiteral(Number(token.value));
@@ -381,10 +393,7 @@ export default class Parser {
   /**
    * BinaryExpression helper
    */
-  private _BinaryExpression(
-    builder: () => PrimaryExpression,
-    operatorType: string
-  ) {
+  private _BinaryExpression(builder: () => AST, operatorType: string) {
     let left = builder();
 
     while (this._lookahead?.type === operatorType) {

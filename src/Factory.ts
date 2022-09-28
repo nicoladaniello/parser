@@ -1,36 +1,19 @@
-import {
-  BinaryExpression,
-  BlockStatement,
-  EmptyStatement,
-  ExpressionStatement,
-  Identifier,
-  NumericLiteral,
-  PrimaryExpression,
-  Program,
-  Statement,
-  StringLiteral,
-  VariableDeclaration,
-  VariableStatement,
-} from "./types";
+import { AST } from "./types";
 
 export default {
-  NumericLiteral(value: number): NumericLiteral {
+  NumericLiteral(value: number): AST {
     return {
       type: "NumericLiteral",
       value,
     };
   },
-  StringLiteral(value: string): StringLiteral {
+  StringLiteral(value: string): AST {
     return {
       type: "StringLiteral",
       value,
     };
   },
-  AssignmentExpression(
-    operator: string,
-    left: PrimaryExpression,
-    right: PrimaryExpression
-  ): BinaryExpression {
+  AssignmentExpression(operator: string, left: AST, right: AST): AST {
     return {
       type: "AssignmentExpression",
       operator,
@@ -38,11 +21,7 @@ export default {
       right,
     };
   },
-  BinaryExpression(
-    operator: string,
-    left: PrimaryExpression,
-    right: PrimaryExpression
-  ): BinaryExpression {
+  BinaryExpression(operator: string, left: AST, right: AST): AST {
     return {
       type: "BinaryExpression",
       operator,
@@ -50,49 +29,54 @@ export default {
       right,
     };
   },
-  Identifier(name: string): Identifier {
+  Identifier(name: string): AST {
     return {
       type: "Identifier",
       name,
     };
   },
-  ExpressionStatement(expression: PrimaryExpression): ExpressionStatement {
+  ExpressionStatement(expression: AST): AST {
     return {
       type: "ExpressionStatement",
       expression,
     };
   },
-  BlockStatement(body: Statement[]): BlockStatement {
+  BlockStatement(body: AST): AST {
     return {
       type: "BlockStatement",
       body,
     };
   },
-  EmptyStatement(): EmptyStatement {
+  EmptyStatement(): AST {
     return {
       type: "EmptyStatement",
     };
   },
-  VariableDeclaration(
-    id: Identifier,
-    init: PrimaryExpression | null = null
-  ): VariableDeclaration {
+  VariableDeclaration(id: AST, init: AST | null = null): AST {
     return {
       type: "VariableDeclaration",
       id,
       init,
     };
   },
-  VariableStatement(declarations: VariableDeclaration[]): VariableStatement {
+  VariableStatement(declarations: AST): AST {
     return {
       type: "VariableStatement",
       declarations,
     };
   },
-  Program(body: Statement[]): Program {
+  Program(body: AST): AST {
     return {
       type: "Program",
       body,
+    };
+  },
+  IfStatement(test: AST, consequent: AST, alternate: AST | null = null): AST {
+    return {
+      type: "IfStatement",
+      test,
+      consequent,
+      alternate,
     };
   },
 };
