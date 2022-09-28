@@ -212,11 +212,11 @@ export default class Parser {
 
   /**
    * AssignmentExpression
-   *  : EqualityExpression
+   *  : LogicalORExpression
    *  | LeftHandSideExpression ASSIGNMENT_OPERATOR AssignmentExpression
    */
   AssignmentExpression(): AST {
-    const left = this.EqualityExpression();
+    const left = this.LogicalORExpression();
 
     if (!this._isAssignmentOperator(this._lookahead?.type)) {
       return left;
@@ -227,6 +227,30 @@ export default class Parser {
       this.AssignmentOperator().value!.toString(),
       this._checkValidAssignmentTarget(left),
       this.AssignmentExpression()
+    );
+  }
+
+  /**
+   * LogicalORExpression
+   *  : LogicalANDExpression
+   *  | LogicalANDExpression LOGICAL_OR LogicalORExpression
+   */
+  LogicalORExpression() {
+    return this._LogicalExpression(
+      this.LogicalANDExpression.bind(this),
+      "LOGICAL_OR"
+    );
+  }
+
+  /**
+   * LogicalANDExpression
+   *  : EqualityExpression
+   *  | EqualityExpression LOGICAL_AND LogicalANDExpression
+   */
+  LogicalANDExpression() {
+    return this._LogicalExpression(
+      this.EqualityExpression.bind(this),
+      "LOGICAL_AND"
     );
   }
 
@@ -463,6 +487,23 @@ export default class Parser {
       const right = builder();
 
       left = Factory.BinaryExpression(operator, left, right);
+    }
+
+    return left;
+  }
+
+  /**
+   * LogicalExpression helper
+   */
+  private _LogicalExpression(builder: () => AST, operatorType: string) {
+    let left = builder();
+
+    while (this._lookahead?.type === operatorType) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const operator = this._eat(operatorType).value!.toString();
+      const right = builder();
+
+      left = Factory.LogicalExpression(operator, left, right);
     }
 
     return left;

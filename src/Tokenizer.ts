@@ -50,6 +50,10 @@ const Spec: [RegExp, string | null][] = [
   // Relational operators
   [/^[><]=?/, "RELATIONAL_OPERATOR"],
 
+  // Logical operators
+  [/^&&/, "LOGICAL_AND"],
+  [/^\|\|/, "LOGICAL_OR"],
+
   // Strings.
   [/"[^"]*"/, "STRING"],
   [/'[^']*'/, "STRING"],

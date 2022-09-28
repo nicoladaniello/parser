@@ -41,6 +41,14 @@ export default {
       right,
     };
   },
+  LogicalExpression(operator: string, left: AST, right: AST): AST {
+    return {
+      type: "LogicalExpression",
+      operator,
+      left,
+      right,
+    };
+  },
   Identifier(name: string): AST {
     return {
       type: "Identifier",
