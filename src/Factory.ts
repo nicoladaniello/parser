@@ -106,4 +106,27 @@ export default {
       alternate,
     };
   },
+  WhileStatement(test: AST, body: AST): AST {
+    return {
+      type: "WhileStatement",
+      test,
+      body,
+    };
+  },
+  DoWhileStatement(test: AST, body: AST): AST {
+    return {
+      type: "WhileStatement",
+      test,
+      body,
+    };
+  },
+  ForStatement(init: AST, test: AST, update: AST, body: AST): AST {
+    return {
+      type: "ForStatement",
+      init,
+      test,
+      update,
+      body,
+    };
+  },
 };

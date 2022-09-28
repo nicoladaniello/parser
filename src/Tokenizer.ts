@@ -24,11 +24,14 @@ const Spec: [RegExp, string | null][] = [
 
   // Keywords
   [/^\blet\b/, "let"],
-  [/^\bif\b/, "if"],
-  [/^\belse\b/, "else"],
   [/^\btrue\b/, "true"],
   [/^\bfalse\b/, "false"],
   [/^\bnull\b/, "null"],
+  [/^\bif\b/, "if"],
+  [/^\belse\b/, "else"],
+  [/^\bwhile\b/, "while"],
+  [/^\bdo\b/, "do"],
+  [/^\bfor\b/, "for"],
 
   // Numbers.
   [/^\d+/, "NUMBER"],
