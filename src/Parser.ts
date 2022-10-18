@@ -529,11 +529,38 @@ export default class Parser {
 
   /**
    * LeftHandSideExpression
-   *  : PrimaryExpression
+   *  : MemberExpression
    *  ;
    */
   LeftHandSideExpression() {
-    return this.PrimaryExpression();
+    return this.MemberExpression();
+  }
+
+  /**
+   * MemberExpression
+   *  : PrimaryExpression
+   *  | MemberExpression '.' Identifier
+   *  | MemberExpression '[' Expression ']'
+   */
+  MemberExpression() {
+    let object = this.PrimaryExpression();
+
+    while (this._lookahead?.type === "." || this._lookahead?.type === "[") {
+      if (this._lookahead?.type === ".") {
+        this._eat(".");
+        const property = this.Identifier();
+        object = Factory.MemberExpression(false, object, property);
+      }
+
+      if (this._lookahead?.type === "[") {
+        this._eat("[");
+        const property = this.Expression();
+        this._eat("]");
+        object = Factory.MemberExpression(true, object, property);
+      }
+    }
+
+    return object;
   }
 
   /**
@@ -643,7 +670,7 @@ export default class Parser {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _checkValidAssignmentTarget(node: any) {
-    if (node.type === "Identifier") {
+    if (node.type === "Identifier" || node.type === "MemberExpression") {
       return node;
     }
 

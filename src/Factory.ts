@@ -56,6 +56,14 @@ export default {
       right,
     };
   },
+  MemberExpression(computed: boolean, object: AST, property: AST) {
+    return {
+      type: "MemberExpression",
+      computed,
+      object,
+      property,
+    };
+  },
   Identifier(name: string): AST {
     return {
       type: "Identifier",
