@@ -68,6 +68,7 @@ export default class Parser {
    *  | IterationStatement
    *  | FunctionStatement
    *  | ReturnStatement
+   *  | ClassDeclaration
    *  ;
    */
   Statement(): AST {
@@ -99,9 +100,38 @@ export default class Parser {
         return this.ReturnStatement();
       }
 
+      case "class": {
+        return this.ClassDeclaration();
+      }
+
       default:
         return this.ExpressionStatement();
     }
+  }
+
+  /**
+   * ClassDeclaration
+   *  : 'class' Identifier OptClassExtends BlockStatement
+   *  |
+   */
+  ClassDeclaration() {
+    this._eat("class");
+    const id = this.Identifier();
+    const superClass =
+      this._lookahead?.type === "extends" ? this.ClassExtends() : null;
+    const body = this.BlockStatement();
+
+    return Factory.ClassDeclaration(id, superClass, body);
+  }
+
+  /**
+   * ClassExtends
+   *  : 'extends' Identifier
+   *  ;
+   */
+  ClassExtends() {
+    this._eat("extends");
+    return this.Identifier();
   }
 
   /**
@@ -543,6 +573,11 @@ export default class Parser {
    *  ;
    */
   CallMemberExpression() {
+    // Super call
+    if (this._lookahead?.type === "super") {
+      return this._CallExpression(this.SuperExpression());
+    }
+
     const member = this.MemberExpression();
 
     if (this._lookahead?.type === "(") {
@@ -585,6 +620,8 @@ export default class Parser {
    *  : Literal
    *  | ParenthesizedExpression
    *  | Identifier
+   *  | ThisExpression
+   *  | NewExpression
    *  ;
    */
   PrimaryExpression(): AST {
@@ -596,9 +633,48 @@ export default class Parser {
       case "(":
         return this.ParenthesizedExpression();
 
+      case "this":
+        return this.ThisExpression();
+
+      case "new":
+        return this.NewExpression();
+
       default:
         return this.Identifier();
     }
+  }
+
+  /**
+   * NewExpression
+   *  : 'new' MemberExpression Arguments;
+   *  ;
+   */
+  NewExpression() {
+    this._eat("new");
+    const callee = this.MemberExpression();
+    const args = this.Arguments();
+
+    return Factory.NewExpression(callee, args);
+  }
+
+  /**
+   * ThisExpression
+   *  : 'this'
+   *  ;
+   */
+  ThisExpression() {
+    this._eat("this");
+    return Factory.ThisExpression();
+  }
+
+  /**
+   * SuperExpression
+   *  : 'super'
+   *  ;
+   */
+  SuperExpression() {
+    this._eat("super");
+    return Factory.SuperExpression();
   }
 
   /**
@@ -694,10 +770,10 @@ export default class Parser {
    *  | CallExpression
    *  ;
    */
-  private _CallExpression(callee: AST) {
+  private _CallExpression(callee: AST): AST {
     const args = this.Arguments();
 
-    let callExpression = Factory.CallExpression(callee, args);
+    let callExpression: AST = Factory.CallExpression(callee, args);
 
     if (this._lookahead?.type === "(") {
       callExpression = this._CallExpression(callExpression);

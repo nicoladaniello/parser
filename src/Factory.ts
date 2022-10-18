@@ -71,6 +71,23 @@ export default {
       args,
     };
   },
+  ThisExpression() {
+    return {
+      type: "ThisExpression",
+    };
+  },
+  SuperExpression() {
+    return {
+      type: "SuperExpression",
+    };
+  },
+  NewExpression(callee: AST, args: AST) {
+    return {
+      type: "NewExpression",
+      callee,
+      args,
+    };
+  },
   Identifier(name: string): AST {
     return {
       type: "Identifier",
@@ -149,6 +166,14 @@ export default {
       type: "FunctionDeclaration",
       name,
       params,
+      body,
+    };
+  },
+  ClassDeclaration(id: AST, superClass: AST, body: AST) {
+    return {
+      type: "ClassDeclaration",
+      id,
+      superClass,
       body,
     };
   },
