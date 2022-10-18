@@ -529,11 +529,27 @@ export default class Parser {
 
   /**
    * LeftHandSideExpression
-   *  : MemberExpression
+   *  : CallMemberExpression
    *  ;
    */
   LeftHandSideExpression() {
-    return this.MemberExpression();
+    return this.CallMemberExpression();
+  }
+
+  /**
+   * CallMemberExpression
+   *  : MemberExpression
+   *  | CallExpression
+   *  ;
+   */
+  CallMemberExpression() {
+    const member = this.MemberExpression();
+
+    if (this._lookahead?.type === "(") {
+      return this._CallExpression(member);
+    }
+
+    return member;
   }
 
   /**
@@ -541,6 +557,7 @@ export default class Parser {
    *  : PrimaryExpression
    *  | MemberExpression '.' Identifier
    *  | MemberExpression '[' Expression ']'
+   *  ;
    */
   MemberExpression() {
     let object = this.PrimaryExpression();
@@ -663,6 +680,60 @@ export default class Parser {
    */
   NullLiteral() {
     return Factory.NullLiteral();
+  }
+
+  /**
+   * Generic CallExpression helper.
+   *
+   * CallExpression
+   *  : Callee Arguments
+   *  ;
+   *
+   * Callee
+   *  : MemberExpression
+   *  | CallExpression
+   *  ;
+   */
+  private _CallExpression(callee: AST) {
+    const args = this.Arguments();
+
+    let callExpression = Factory.CallExpression(callee, args);
+
+    if (this._lookahead?.type === "(") {
+      callExpression = this._CallExpression(callExpression);
+    }
+
+    return callExpression;
+  }
+
+  /**
+   * Arguments
+   *  : '(' OptArgumentList ')'
+   *  ;
+   */
+  Arguments() {
+    this._eat("(");
+    const argumentList =
+      this._lookahead?.type !== ")" ? this.ArgumentList() : [];
+    this._eat(")");
+
+    return argumentList;
+  }
+
+  /**
+   * ArgumentList
+   *  : AssignmentExpression
+   *  | ArgumentList ',' AssignmentExpression
+   *  ;
+   */
+  ArgumentList() {
+    const args = [];
+
+    do {
+      args.push(this.AssignmentExpression());
+    } while (this._lookahead?.type === "," && this._eat(","));
+
+    return args;
   }
 
   /**

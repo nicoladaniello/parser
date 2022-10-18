@@ -64,6 +64,13 @@ export default {
       property,
     };
   },
+  CallExpression(callee: AST, args: AST) {
+    return {
+      type: "CallExpression",
+      callee,
+      args,
+    };
+  },
   Identifier(name: string): AST {
     return {
       type: "Identifier",
