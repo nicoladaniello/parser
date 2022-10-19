@@ -1,11 +1,8 @@
 {
-  "type": "module",
   "name": "parser",
   "version": "1.0.0",
   "description": "Build a Recursive-descent parser.",
   "author": "Nicola D'Aniello",
-  "license": "ISC",
-  "browserslist": "> 0.25%, not dead",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
